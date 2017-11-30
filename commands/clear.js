@@ -1,80 +1,87 @@
 exports.run = (d) => {
-    let Discord = d.d;
-    let client = d.c;
-    let message = d.m;
-    let con = d.s;
-    if (!message.guild) {
-        const embed = new Discord.RichEmbed()
-            .setTitle('Error!')
-            .setColor(0xFF5252)
-            .setDescription('You need to use this command in a server')
-        message.channel.send({
-            embed
-        });
-        return;
-    }
-    if (!message.channel.permissionsFor(message.member).has('MANAGE_MESSAGES')) {
-        const embed = new Discord.RichEmbed()
-            .setTitle('Error! ' + message.author.username)
-            .setColor(0xFF5252)
-            .setDescription('Lacking Permission')
-            .addField('Permission needed', '`MANAGE_MESSAGES`');
-        message.channel.send({
-            embed
-        });
-        return;
-    }
-    let args = message.content.split(' ');
-    if (args.length > 1 && args[1].match('^[0-9]*$') && args[1] <= 100 && args[1] >= 1) {
-        if (args[1] == 1) {
-            message.delete().then(e => {
-                if (message.guild.channels.find('name', 'devbot-logs') !== null) message.guild.channels.find('name', 'devbot-logs').send('.clear | ' + message.author.username + ' | Cleared ' + args[1] + ' messages in ' + message.channel.name);
-                message.channel.send({
-                    embed: {
-                        title: 'Success!',
-                        color: 0x00E676,
-                        description: 'Cleared 1 message',
-                    }
-                }).then(m => {
-                    m.delete(5000)
-                });
-            }).catch(e => {
-                message.channel.send({
-                    embed: {
-                        title: 'Error!',
-                        color: 0xFF5252,
-                        description: '' + e,
-                    }
-                });
-            });
-        } else {
-            message.channel.bulkDelete(args[1]).then(e => {
-                if (message.guild.channels.find('name', 'devbot-logs') !== null) message.guild.channels.find('name', 'devbot-logs').send('.clear | ' + message.author.username + ' | Cleared ' + e.size + ' messages in ' + message.channel.name);
-                message.channel.send({
-                    embed: {
-                        title: 'Success!',
-                        color: 0x00E676,
-                        description: 'Cleared ' + e.size + ' messages',
-                    }
-                }).then(m => {
-                    m.delete(5000)
-                });
-            }).catch(e => {
-                message.channel.send({
-                    embed: {
-                        title: 'Error!',
-                        color: 0xFF5252,
-                        description: '' + e,
-                    }
-                });
-            });
-        }
-        return;
-    }
+  let Discord = d.d;
+  let client = d.c;
+  let message = d.m;
+  let con = d.b;
+  if (!message.guild) {
+    const embed = em
+      .setColor(0xFF9100)
+      .setTitle('I can\'t let you do this')
+      .setDescription('You can only use this command in a guild');
     message.channel.send({
-        embed: {
-            title: 'Usage: ' + con.pre + 'clear {amount 1 - 100}',
-            color: 0xFFFFFF,
-        }
+      embed
     });
+    return;
+  }
+  if (!message.channel.permissionsFor(message.member).has('MANAGE_MESSAGES')) {
+    const embed = new Discord.RichEmbed()
+      .setColor(0xFF9100)
+      .setDescription('You need the permission `MANAGE_MESSAGES` to do this');
+    message.channel.send({
+      embed
+    });
+    return;
+  }
+  if (!(message.content.split(' ').length > 1 && message.content.split(' ')[1].match('^[0-9]*$') && message.content.split(' ')[1] <= 100 && message.content.split(' ')[1] >= 0)) {
+    message.channel.send({
+      embed: new Discord.RichEmbed()
+      .setColor(0x212121)
+      .setDescription('Usage: ' + d.b.pre + 'clear {amount 0-100}')
+    });
+    return;
+  }
+  if (message.content.split(' ')[1] == 0) {
+    message.delete().then(e => {
+      message.channel.send({
+        embed: new Discord.RichEmbed()
+        .setColor(0x00E676)
+        .setTitle('Success!')
+        .setDescription('Cleared your message')
+      }).then(m => m.delete(5000));
+    }).catch(e => {
+      message.channel.send({
+        embed: new Discord.RichEmbed()
+          .setColor(0xFF1744)
+          .setDescription('Error: ' + e)
+      });
+    });
+  } else if (message.content.split(' ')[1] == 1) {
+    message.delete().catch(error => {}).then(
+      setTimeout(function () {
+        message.channel.messages.last(2)[1].delete().catch(error => {}).then(e => {
+          message.channel.send({
+            embed: new Discord.RichEmbed()
+              .setColor(0x00E676)
+              .setTitle('Success!')
+              .setDescription('Cleared 1 message')
+          }).then(m => m.delete(5000).catch());
+        }).catch(e => {
+          message.channel.send({
+            embed: new Discord.RichEmbed()
+              .setColor(0xFF1744)
+              .setDescription('Error: ' + e)
+          }).catch(e => {});
+        });
+      }, 500)
+    );
+  } else {
+    message.delete().then(
+      setTimeout(function () {
+        message.channel.bulkDelete(message.content.split(' ')[1]).then(e => {
+          message.channel.send({
+            embed: new Discord.RichEmbed()
+              .setColor(0x00E676)
+              .setTitle('Success!')
+              .setDescription('Cleared ' + e.size + ' messages')
+          }).then(m => m.delete(5000).catch());
+        }).catch(e => {
+          message.channel.send({
+            embed: new Discord.RichEmbed()
+              .setColor(0xFF1744)
+              .setDescription('Error: ' + e)
+          }).catch();
+        });
+      }, 500)
+    );
+  }
 }

@@ -1,36 +1,38 @@
 exports.run = (d) => {
-    // client.guilds.forEach(e => {if (e.channels.find('name', 'devbot-logs') !== null) e.channels.find('name', 'devbot-logs').send('DevBot is going to be under development tomorrow and tonight')})
-    let Discord = d.d;
-    let client = d.c;
-    let message = d.m;
-    let con = d.s;
-    if (message.author.id !== '250425759452233729') {
-        const embed = new Discord.RichEmbed()
-            .setTitle('Error!')
-            .setColor(0xFF5252)
-            .setDescription('You must be Alex for this');
-        message.channel.send({
-            embed
-        });
-        return;
-    }
-    if (message.content.split(' ').length <= 1) {
-        const embed = new Discord.RichEmbed()
-            .setTitle('Usage: ' + con.pre + 'announce {type} {message}')
-            .setColor(0xFFFFFF)
-        message.channel.send({
-            embed
-        });
-        return;
-    }
-    client.guilds.forEach(e => {
-        if (e.channels.find('name', 'devbot-logs') !== null) {
-            const embed = new Discord.RichEmbed()
-                .setColor(0xD500F9)
-                .setTitle('Announcement')
-                .setDescription(d.a.join(' '));
-            e.channels.find('name', 'devbot-logs').send({ embed });
-        }
+  let Discord = d.d;
+  let client = d.c;
+  let message = d.m;
+  if (d.m.author.id !== '250425759452233729') {
+    const embed = new Discord.RichEmbed()
+      .setColor(0x9C27B0)
+      .setDescription('Haha good try! But you\'re not Alex ' + d.c.emojis.get('338824092134408192'));
+    d.m.channel.send({
+      embed
     });
-    message.channel.send('Sent to ' + client.guilds.size + ' guilds');
+    return;
+  }
+  if (message.content.split(' ').length <= 1) {
+    const embed = new Discord.RichEmbed()
+      .setColor(0x212121)
+      .setDescription('Usage: ' + d.b.pre + 'announce {what}');
+    message.channel.send({
+      embed
+    });
+    return;
+  }
+  let reply = message.content.split(' ').splice(1).join(' ');
+  let count = 0;
+  client.guilds.forEach(e => {
+    if (e.channels.find('name', 'devbot-logs') !== null) {
+      const embed = new Discord.RichEmbed()
+        .setColor(0xD500F9)
+        .setTitle('Announcement')
+        .setDescription(reply);
+      e.channels.find('name', 'devbot-logs').send({
+        embed
+      });
+      count++;
+    }
+  });
+  message.channel.send('Sent to ' + count + ' guilds');
 }

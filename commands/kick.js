@@ -1,79 +1,78 @@
 exports.run = (d) => {
-    let Discord = d.d;
-    let client = d.c;
-    let message = d.m;
-    let con = d.s;
+  let Discord = d.d;
+  let client = d.c;
+  let message = d.m;
+  let con = d.b;
+  if (!message.channel.permissionsFor(message.member).has('KICK_MEMBERS')) {
     const embed = new Discord.RichEmbed()
-        .setTitle('Kick command is in progress')
-        .setColor(0xFFFFFF)
+      .setColor(0xFF9100)
+      .setDescription('You need the permission `KICK_MEMBERS` to do this');
     message.channel.send({
-        embed
+      embed
     });
-    let args = message.content.split(' ');
-    if (!message.guild) {
-        const embed = new Discord.RichEmbed()
-            .setTitle('Error!')
-            .setColor(0xFF5252)
-            .setDescription('You need to use this command in a server')
-        message.channel.send({
-            embed
-        });
-        return;
-    }
-    if (!message.channel.permissionsFor(message.member).has('KICK_MEMBERS')) {
-        const embed = new Discord.RichEmbed()
-            .setTitle('Error! ' + message.author.username)
-            .setColor(0xFF5252)
-            .setDescription('Lacking Permission')
-            .addField('Permission needed', '`KICK_MEMBERS`');
-        message.channel.send({
-            embed
-        });
-        return;
-    }
-    if (args.length < 2) {
-        const embed = new Discord.RichEmbed()
-            .setTitle('Usage: ' + con.pre + 'kick {id or tag} [reason]')
-            .setColor(0xFFFFFF)
-        message.channel.send({
-            embed
-        });
-        return;
-    }
-    let targetid = args[1].replace('>', '').replace('<', '').replace('@', '').replace('!', '');
-    let kickmsg = '';
-    let target = null;
-    if (args.length > 2)
-        for (let i = 2; i < args.length; i++) kickmsg = kickmsg + args[i] + ' ';
-    else kickmsg = 'Kicked! Ouch...';
-    if (message.guild.members.find('id', targetid) !== null) target = message.guild.members.get(targetid);
-    else {
-        message.channel.send({
-            embed: {
-                title: 'Error!',
-                color: 0xFF5252,
-                description: 'Member not found',
-            }
-        });
-        return;
-    }
-    target.kick(kickmsg).then(e => {
-        message.channel.send({
-            embed: {
-                title: 'Success!',
-                color: 0x00E676,
-                description: 'Kicked ' + target.user.username + ' with kick message `' + kickmsg + '`',
-            }
-        });
-        if (message.guild.channels.find('name', 'devbot-logs') !== null) message.guild.channels.find('name', 'devbot-logs').send(' ❗ Kicked ' + target.user.username + ' with kick message `' + kickmsg + '`');
-        client.users.get(targetid).send('You were kicked from ' + message.guild.name + ' with the reason `' + kickmsg + '`');
-    }).catch(e => {
-        message.channel.send({
-            embed: {
-                title: 'Error!',
-                color: 0xFF5252,
-                description: '' + e,
-            }
-        });
+    return;
+  }
+  if (message.content.split(' ').length < 2) {
+    const embed = new Discord.RichEmbed()
+      .setColor(0x212121)
+      .setDescription('Usage: ' + d.b.pre + 'kick {id or tag} [reason]');
+    message.channel.send({
+      embed
     });
+    return;
+  }
+  let id = message.content.split(' ')[1].replace(/\D/g, '');
+  let msg = '';
+  let target = null;
+  if (message.content.split(' ').length > 2) msg = message.content.split(' ').slice(2).join(' ');
+  else msg = 'Kicked from server ' + message.guild.name;
+  if (message.guild.members.get(id) !== undefined) target = message.guild.members.get(id);
+  else {
+    message.channel.send({
+      embed: new Discord.RichEmbed()
+        .setColor(0xFF9100)
+        .setDescription('Member not found')
+        .setFooter(con.pre + 'kick {id or tag} [reason]')
+    });
+    return;
+  }
+  target.kick(msg.match(/[a-zA-Z]+/g).join(' ')).then(e => {
+    const e1 = new Discord.RichEmbed()
+      .setColor(0x00E676)
+      .setTitle('Success!')
+      .setDescription('Kicked ' + target.user.username + ' for ' + msg)
+      .setTimestamp();
+    message.channel.send({
+      embed: e1
+    });
+    if (message.guild.channels.find('name', 'devbot-logs') !== null) {
+      const e2 = new Discord.RichEmbed()
+        .setColor(0xFF9100)
+        .setTitle('Kicked ' + target.user.username)
+        .setDescription('Reason: ' + msg)
+        .addField('Who kicked user', message.author + ' » ' + message.author.id)
+        .setFooter('Target ID ' + target.id)
+        .setTimestamp();
+      message.guild.channels.find('name', 'devbot-logs').send({
+        embed: e2
+      });
+    }
+    if (client.users.get(target.id) !== null) {
+      const e3 = new Discord.RichEmbed()
+        .setColor(0xFF9100)
+        .setDescription('You were kicked from ' + message.guild.name + ' with the reason: ' + msg)
+        .setFooter('Guild ID ' + message.guild.id)
+        .setTimestamp();
+      client.users.get(id).send({
+        embed: e3
+      }).catch(e => {});
+    }
+  }).catch(e => {
+    const embed = new Discord.RichEmbed()
+      .setColor(0xFF1744)
+      .setDescription('Error: ' + e);
+    message.channel.send({
+      embed
+    });
+  });
 }
